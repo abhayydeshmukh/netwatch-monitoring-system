@@ -1,0 +1,17 @@
+# NetWatch .gitignore
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# SQLite Database (generated at runtime)
+*.db
+*.sqlite3
+
+# OS generated files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetWatch - Network & Linux Server Monitor</title>
+    <!-- Auto-refresh page every 10 seconds -->
+    <meta http-equiv="refresh" content="10">
+    <!-- Link to custom standalone CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header Section -->
+        <header>
+            <div class="logo-area">
+                <h1>
+                    <span>📡 NetWatch</span>
+                    <span class="logo-badge">Live Monitor</span>
+                </h1>
+                <p class="sub-title">Linux Server & Network Health Monitoring System</p>
+            </div>
+            <div class="header-actions">
+                <span class="last-updated">Last check: <strong>{{ current.timestamp if current else 'Just now' }}</strong></span>
+                <a href="{{ url_for('index') }}" class="btn-refresh">🔄 Refresh Now</a>
+            </div>
+        </header>
+
+        <!-- Alert Banner (Triggered if any warning exists) -->
+        {% if alerts %}
+        <div class="alert-box">
+            <div class="alert-title">
+                <span>⚠️ SYSTEM WARNING DETECTED</span>
+            </div>
+            <ul class="alert-list">
+                {% for alert in alerts %}
+                <li>{{ alert }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- System Status Cards Grid -->
+        <div class="cards-grid">
+
+            <!-- Card 1: Network Ping Status -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Network Ping</span>
+                    <span class="card-icon">🌐</span>
+                </div>
+                <div class="card-value">
+                    {% if current.ping_status == 'UP' %}
+                        <span class="badge badge-up">UP</span>
+                    {% else %}
+                        <span class="badge badge-down">DOWN</span>
+                    {% endif %}
+                </div>
+                <div class="card-meta">
+                    Target: <code>{{ current.target_ip }}</code><br>
+                    Latency: 
+                    {% if current.ping_latency is not none %}
+                        <strong>{{ current.ping_latency }} ms</strong>
+                    {% else %}
+                        <span class="text-muted">Unreachable</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Card 2: CPU Usage -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">CPU Usage</span>
+                    <span class="card-icon">⚡</span>
+                </div>
+                <div class="card-value">{{ current.cpu_usage }}%</div>
+                <div class="progress-container">
+                    <div class="progress-bar {% if current.cpu_usage > 80 %}bar-critical{% elif current.cpu_usage > 60 %}bar-warning{% else %}bar-normal{% endif %}"
+                         style="width: {{ current.cpu_usage }}%;">
+                    </div>
+                </div>
+                <div class="card-meta" style="margin-top: 8px;">
+                    Threshold: 80% Max
+                </div>
+            </div>
+
+            <!-- Card 3: RAM Usage -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">RAM Usage</span>
+                    <span class="card-icon">🧠</span>
+                </div>
+                <div class="card-value">{{ current.ram_usage }}%</div>
+                <div class="progress-container">
+                    <div class="progress-bar {% if current.ram_usage > 80 %}bar-critical{% elif current.ram_usage > 60 %}bar-warning{% else %}bar-normal{% endif %}"
+                         style="width: {{ current.ram_usage }}%;">
+                    </div>
+                </div>
+                <div class="card-meta" style="margin-top: 8px;">
+                    Threshold: 80% Max
+                </div>
+            </div>
+
+            <!-- Card 4: Disk Usage -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Disk Usage</span>
+                    <span class="card-icon">💾</span>
+                </div>
+                <div class="card-value">{{ current.disk_usage }}%</div>
+                <div class="progress-container">
+                    <div class="progress-bar {% if current.disk_usage > 80 %}bar-critical{% elif current.disk_usage > 60 %}bar-warning{% else %}bar-normal{% endif %}"
+                         style="width: {{ current.disk_usage }}%;">
+                    </div>
+                </div>
+                <div class="card-meta" style="margin-top: 8px;">
+                    Root Filesystem (/)
+                </div>
+            </div>
+
+            <!-- Card 5: System Uptime -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">System Uptime</span>
+                    <span class="card-icon">⏱️</span>
+                </div>
+                <div class="card-value" style="font-size: 1.5rem;">{{ current.uptime }}</div>
+                <div class="card-meta">
+                    Time since last reboot
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Latest Monitoring Records Table -->
+        <section class="table-section">
+            <div class="section-header">
+                <h2>📊 Recent Monitoring History</h2>
+                <span class="record-count">Showing last {{ history|length }} records</span>
+            </div>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Ping Status</th>
+                            <th>Latency (ms)</th>
+                            <th>CPU Usage</th>
+                            <th>RAM Usage</th>
+                            <th>Disk Usage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in history %}
+                        <tr>
+                            <td><code>{{ record.timestamp }}</code></td>
+                            <td>
+                                {% if record.ping_status == 'UP' %}
+                                    <span class="badge badge-up">UP</span>
+                                {% else %}
+                                    <span class="badge badge-down">DOWN</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.ping_latency is not none %}
+                                    {{ record.ping_latency }} ms
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ record.cpu_usage }}%</td>
+                            <td>{{ record.ram_usage }}%</td>
+                            <td>{{ record.disk_usage }}%</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-secondary);">
+                                No monitoring records found yet. Refreshing...
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Footer / Auto-refresh hint -->
+        <div class="refresh-control">
+            <p>Dashboard automatically updates every 10 seconds. Built with Python, Flask, psutil & SQLite.</p>
+        </div>
+
+    </div>
+</body>
+</html>
