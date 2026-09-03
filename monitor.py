@@ -38,7 +38,9 @@ import re
 import subprocess
 import time
 from datetime import timedelta
-import psutil
+
+import psutil  # type: ignore[import-unresolved]
+import database
 
 # Import database module for saving snapshots
 import database
