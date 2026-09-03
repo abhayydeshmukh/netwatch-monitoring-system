@@ -2,7 +2,7 @@
 
 A clean, lightweight, beginner-friendly system and network monitoring application built with **Python**, **Flask**, **psutil**, and **SQLite**.
 
-Designed specifically for **engineering placement interviews**, this project focuses on clear software architecture, clean procedural code, foundational Linux kernel concepts, and core computer networking principles without over-engineering.
+This project focuses on clear software architecture, clean procedural code, foundational Linux kernel concepts, and core computer networking principles without over-engineering.
 
 ---
 
